@@ -1,0 +1,92 @@
+{
+  "name": "gitdoro-ide-time-tracker",
+  "displayName": "Gitdoro: Code Time Tracker & Productivity Timer",
+  "description": "The ultimate code time tracker and GitHub time tracker. Track focus, pomodoros, and productivity directly from VS Code.",
+  "version": "0.0.5",
+  "publisher": "Gitdoro",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/viniscodes/gitdoro-ide-time-tracker"
+  },
+  "bugs": {
+    "url": "https://github.com/viniscodes/gitdoro-ide-time-tracker/issues"
+  },
+  "homepage": "https://gitdoro.com",
+  "keywords": [
+    "gitdoro",
+    "focus",
+    "pomodoro",
+    "time tracker",
+    "productivity",
+    "code time tracker",
+    "github time tracker",
+    "git time tracker",
+    "ide time tracker",
+    "vscode time tracker",
+    "developer productivity"
+  ],
+  "license": "MIT",
+  "icon": "icon.png",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "gitdoro.startTimer",
+        "title": "Gitdoro: Start Timer"
+      },
+      {
+        "command": "gitdoro.pauseTimer",
+        "title": "Gitdoro: Pause Timer"
+      },
+      {
+        "command": "gitdoro.login",
+        "title": "Gitdoro: Login"
+      },
+      {
+        "command": "gitdoro.openDashboard",
+        "title": "Gitdoro: Open Dashboard"
+      },
+      {
+        "command": "gitdoro.showMenu",
+        "title": "Gitdoro: Show Menu"
+      },
+      {
+        "command": "gitdoro.stopTimer",
+        "title": "Gitdoro: Stop Timer"
+      }
+    ],
+    "configuration": {
+      "title": "Gitdoro",
+      "properties": {
+        "gitdoro.autoTrack": {
+          "type": "boolean",
+          "default": false,
+          "description": "Automatically track time when VS Code is focused"
+        }
+      }
+    }
+  },
+  "extensionDependencies": [
+    "vscode.git"
+  ],
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.80.0",
+    "@types/node": "18.x",
+    "typescript": "^5.1.3"
+  }
+}
