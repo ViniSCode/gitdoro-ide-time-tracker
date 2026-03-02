@@ -1,12 +1,10 @@
 # Gitdoro: Code Time Tracker & Developer Productivity Engine
 
-![Gitdoro Developer Productivity Engine](https://raw.githubusercontent.com/ViniSCode/gitdoro-ide-time-tracker/main/timer_overview.png)
+![Locating the Extenion](https://raw.githubusercontent.com/ViniSCode/gitdoro-ide-time-tracker/main/gitdoro_location.png)
 
 Looking for a reliable **code time tracker** or **GitHub time tracker**? You just found the best one. 
 
 **Gitdoro is the definitive productivity engine built specifically for developers.** Stop guessing where your time goes, eliminate distractions, and start tracking your deep work flawlessly right from your editor.
-
-![Gitdoro Search Integration](https://raw.githubusercontent.com/ViniSCode/gitdoro-ide-time-tracker/main/gitdoro_search.png)
 
 ## 🚀 Why Developers Use Gitdoro
 Gitdoro isn't just a simple pomodoro timer. It is a fully-featured **IDE time tracker** that transforms your daily coding into a rewarding, gamified experience.
@@ -36,6 +34,8 @@ When you are ready to enter flow state and track your code time:
 2. The timer ticks (`▶ 00:01`, `▶ 00:02`...). You are now in a focus session!
 3. Gitdoro automatically associates this session with your current workspace.
 
+![Timer Overview](https://raw.githubusercontent.com/ViniSCode/gitdoro-ide-time-tracker/main/timer_overview.png)
+
 ### 3. Pause or Stop a Session
 Need a break or finished for the day?
 1. Click the running timer (e.g., `▶ 25:00`) on the status bar.
@@ -43,6 +43,8 @@ Need a break or finished for the day?
    - **Pause Timer**: Temporarily halts the timer. You can resume anytime.
    - **Stop Tracking**: Ends the session completely and finalizes the sync to your Gitdoro dashboard.
    - **Open Dashboard**: Takes you directly to your stats on [gitdoro.com](https://gitdoro.com).
+
+![Gitdoro Search Integration](https://raw.githubusercontent.com/ViniSCode/gitdoro-ide-time-tracker/main/gitdoro_search.png)
 
 ## 📊 View Your Progress & Stats
 
