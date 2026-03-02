@@ -1,12 +1,12 @@
 # Gitdoro: Code Time Tracker & Developer Productivity Engine
 
-![Gitdoro Developer Productivity Engine](https://raw.githubusercontent.com/viniscodes/gitdoro-ide-time-tracker/main/timer_overview.png)
+![Gitdoro Developer Productivity Engine](https://raw.githubusercontent.com/ViniSCode/gitdoro-ide-time-tracker/main/timer_overview.png)
 
 Looking for a reliable **code time tracker** or **GitHub time tracker**? You just found the best one. 
 
 **Gitdoro is the definitive productivity engine built specifically for developers.** Stop guessing where your time goes, eliminate distractions, and start tracking your deep work flawlessly right from your editor.
 
-![Gitdoro Search Integration](https://raw.githubusercontent.com/viniscodes/gitdoro-ide-time-tracker/main/gitdoro_search.png)
+![Gitdoro Search Integration](https://raw.githubusercontent.com/ViniSCode/gitdoro-ide-time-tracker/main/gitdoro_search.png)
 
 ## 🚀 Why Developers Use Gitdoro
 Gitdoro isn't just a simple pomodoro timer. It is a fully-featured **IDE time tracker** that transforms your daily coding into a rewarding, gamified experience.
@@ -22,7 +22,7 @@ Gitdoro isn't just a simple pomodoro timer. It is a fully-featured **IDE time tr
 
 Getting started with Gitdoro takes less than a minute. Turn your raw effort into undeniable, quantifiable progress!
 
-![Repo Overview](https://raw.githubusercontent.com/viniscodes/gitdoro-ide-time-tracker/main/repo_overview.png)
+![Repo Overview](https://raw.githubusercontent.com/ViniSCode/gitdoro-ide-time-tracker/main/repo_overview.png)
 
 ### 1. Connect your Account
 After installing the extension from the VS Code Marketplace, look at the bottom right of your VS Code window in the **Status Bar**.
@@ -48,7 +48,7 @@ Need a break or finished for the day?
 
 Click **Open Dashboard** from the menu or visit your Gitdoro profile to see your newly tracked time added to your daily streak, total XP, and project history! High retention, gamification, and stats keep you motivated to code every day.
 
-![Reports Overview](https://raw.githubusercontent.com/viniscodes/gitdoro-ide-time-tracker/main/reports_overview.png)
+![Reports Overview](https://raw.githubusercontent.com/ViniSCode/gitdoro-ide-time-tracker/main/reports_overview.png)
 
 ## ⌨️ Commands
 
