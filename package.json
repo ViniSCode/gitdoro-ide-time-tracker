@@ -1,8 +1,8 @@
 {
   "name": "gitdoro-ide-time-tracker",
-  "displayName": "Gitdoro: Code Time Tracker & Productivity Timer",
-  "description": "The ultimate code time tracker and GitHub time tracker. Track focus, pomodoros, and productivity directly from VS Code.",
-  "version": "0.0.5",
+  "displayName": "Gitdoro: Focus Timer & Deep Work Tracker for Developers",
+  "description": "Track focus sessions, coding time & deep work with GitHub-style heatmaps. Free Pomodoro timer for developers. WakaTime alternative.",
+  "version": "0.1.0",
   "publisher": "Gitdoro",
   "repository": {
     "type": "git",
@@ -13,17 +13,16 @@
   },
   "homepage": "https://gitdoro.com",
   "keywords": [
-    "gitdoro",
-    "focus",
-    "pomodoro",
+    "pomodoro timer",
+    "focus timer",
     "time tracker",
-    "productivity",
+    "deep work",
+    "developer productivity",
     "code time tracker",
     "github time tracker",
-    "git time tracker",
-    "ide time tracker",
-    "vscode time tracker",
-    "developer productivity"
+    "coding session",
+    "flow state",
+    "wakatime alternative"
   ],
   "license": "MIT",
   "icon": "icon.png",
@@ -31,6 +30,7 @@
     "vscode": "^1.80.0"
   },
   "categories": [
+    "Visualization",
     "Other"
   ],
   "activationEvents": [
