@@ -1,0 +1,1 @@
+﻿src/extension.ts(119,40): error TS2339: Property 'getActionItem' does not exist on type 'StatusBarManager'.
