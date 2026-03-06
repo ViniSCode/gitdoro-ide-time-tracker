@@ -144,6 +144,11 @@ async function initializeExtension() {
   if (isLoggedIn) {
     await projectManager.detectProject();
     statusBar.update('idle', projectManager.getCurrentProjectName());
+
+    // Handle auto-start on activation if window is already focused
+    if (tracker.isAutoTrackEnabled() && vscode.window.state.focused) {
+      tracker.onWindowFocused();
+    }
   } else {
     statusBar.update('logged-out', null);
   }

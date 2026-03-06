@@ -19,6 +19,7 @@ export class Tracker {
   private accumulatedSeconds: number = 0;
   private heartbeatInterval: NodeJS.Timeout | null = null;
   private blurTimeout: NodeJS.Timeout | null = null;
+  private autoTrackTimeout: NodeJS.Timeout | null = null;
   private sessionId: string | null = null;
 
   constructor(auth: AuthManager, projectManager: ProjectManager, statusBar: StatusBarManager) {
@@ -75,6 +76,7 @@ export class Tracker {
     this.statusBar.stopTicking();
     this.statusBar.update('paused', this.projectManager.getCurrentProjectName());
     this.stopHeartbeat();
+    this.clearAutoTrackTimeout();
 
     // Send a sync to save progress
     await this.syncToGitdoro('paused');
@@ -97,6 +99,7 @@ export class Tracker {
     this.statusBar.resetElapsed();
     this.stopHeartbeat();
     this.clearBlurTimeout();
+    this.clearAutoTrackTimeout();
 
     // Final sync
     await this.syncToGitdoro('stopped');
@@ -132,12 +135,43 @@ export class Tracker {
     return config.get<boolean>('autoTrack', false);
   }
 
+  getAutoTrackDelayMs(): number {
+    const config = vscode.workspace.getConfiguration('gitdoro');
+    const minutes = config.get<number>('autoTrackDelay', 0);
+    return Math.max(0, minutes) * 60_000;
+  }
+
+  isPauseOnBlurEnabled(): boolean {
+    const config = vscode.workspace.getConfiguration('gitdoro');
+    return config.get<boolean>('pauseOnBlur', true);
+  }
+
+  getPauseOnBlurDelayMs(): number {
+    const config = vscode.workspace.getConfiguration('gitdoro');
+    const minutes = config.get<number>('pauseOnBlurDelay', 5);
+    return Math.max(0, minutes) * 60_000;
+  }
+
   /**
    * Called when VS Code window gains focus (for auto-track).
    */
   async onWindowFocused(): Promise<void> {
     this.clearBlurTimeout();
 
+    if (this.state === 'paused' || this.state === 'idle') {
+      const delayMs = this.getAutoTrackDelayMs();
+      if (delayMs > 0) {
+        this.clearAutoTrackTimeout();
+        this.autoTrackTimeout = setTimeout(async () => {
+          await this.resumeOrStart();
+        }, delayMs);
+      } else {
+        await this.resumeOrStart();
+      }
+    }
+  }
+
+  private async resumeOrStart(): Promise<void> {
     if (this.state === 'paused') {
       // Resume timer automatically
       this.state = 'running';
@@ -152,17 +186,24 @@ export class Tracker {
 
   /**
    * Called when VS Code window loses focus (for auto-track).
-   * Waits BLUR_PAUSE_DELAY_MS before pausing.
+   * Waits configured delay before pausing.
    */
   onWindowBlurred(): void {
     if (this.state !== 'running') return;
 
+    this.clearAutoTrackTimeout();
+
+    if (!this.isPauseOnBlurEnabled()) {
+      return;
+    }
+
     this.clearBlurTimeout();
+    const delayMs = this.getPauseOnBlurDelayMs();
     this.blurTimeout = setTimeout(async () => {
       if (this.state === 'running') {
         await this.pause();
       }
-    }, BLUR_PAUSE_DELAY_MS);
+    }, delayMs);
   }
 
   /**
@@ -206,6 +247,16 @@ export class Tracker {
     if (this.blurTimeout) {
       clearTimeout(this.blurTimeout);
       this.blurTimeout = null;
+    }
+  }
+
+  /**
+   * Clear the auto-track timeout.
+   */
+  private clearAutoTrackTimeout(): void {
+    if (this.autoTrackTimeout) {
+      clearTimeout(this.autoTrackTimeout);
+      this.autoTrackTimeout = null;
     }
   }
 
