@@ -89,17 +89,16 @@ export class ProjectManager {
    * Supports HTTPS and SSH formats.
    */
   parseGitRemoteUrl(url: string): { owner: string; repo: string } | null {
-    // HTTPS: https://github.com/owner/repo.git or https://github.com/owner/repo.app.git
-    const httpsMatch = url.match(/github\.com[/:]([^/]+)\/(.+?)(?:\.git)?$/i);
-    if (httpsMatch) {
-      return { owner: httpsMatch[1], repo: httpsMatch[2] };
+    // HTTPS or SSH forms
+    // Matches: https://github.com/owner/repo.git OR git@github.com:owner/repo.git
+    const match = url.match(/github\.com[/:]([^/]+)\/([^/]+)$/i);
+    if (!match) return null;
+
+    let repo = match[2];
+    if (repo.toLowerCase().endsWith('.git')) {
+      repo = repo.slice(0, -4);
     }
-    // SSH: git@github.com:owner/repo.git
-    const sshMatch = url.match(/git@github\.com:([^/]+)\/(.+?)(?:\.git)?$/i);
-    if (sshMatch) {
-      return { owner: sshMatch[1], repo: sshMatch[2] };
-    }
-    return null;
+    return { owner: match[1], repo };
   }
 
   /**

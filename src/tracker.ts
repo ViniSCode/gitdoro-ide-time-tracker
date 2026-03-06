@@ -1,3 +1,4 @@
+import * as crypto from 'crypto';
 import * as vscode from 'vscode';
 import { AuthManager } from './auth';
 import { ProjectManager } from './projectManager';
@@ -18,6 +19,7 @@ export class Tracker {
   private accumulatedSeconds: number = 0;
   private heartbeatInterval: NodeJS.Timeout | null = null;
   private blurTimeout: NodeJS.Timeout | null = null;
+  private sessionId: string | null = null;
 
   constructor(auth: AuthManager, projectManager: ProjectManager, statusBar: StatusBarManager) {
     this.auth = auth;
@@ -42,7 +44,7 @@ export class Tracker {
     }
 
     if (this.state === 'paused') {
-      // Resume from pause — keep accumulated time
+      // Resume from pause — keep accumulated time and same sessionId
       this.state = 'running';
       this.sessionStartTime = Date.now();
     } else {
@@ -50,6 +52,7 @@ export class Tracker {
       this.state = 'running';
       this.sessionStartTime = Date.now();
       this.accumulatedSeconds = 0;
+      this.sessionId = crypto.randomUUID();
     }
 
     const projectName = this.projectManager.getCurrentProjectName();
@@ -102,6 +105,7 @@ export class Tracker {
     this.statusBar.update('idle', projectName);
 
     this.accumulatedSeconds = 0;
+    this.sessionId = null;
 
     vscode.window.showInformationMessage('Gitdoro: Timer stopped. Session saved.');
   }
@@ -225,6 +229,7 @@ export class Tracker {
       await this.auth.apiRequest('/api/extension/sync', {
         method: 'POST',
         body: {
+          sessionId: this.sessionId,
           projectId: project?.gitdoroProjectId || null,
           projectName: projectName || 'Unassigned',
           elapsedSeconds: this.accumulatedSeconds,
