@@ -1,6 +1,6 @@
 # Gitdoro: Code Time Tracker & Developer Productivity Engine
 
-![Locating the Extension](https://raw.githubusercontent.com/ViniSCode/gitdoro-ide-time-tracker/main/gitdoro_status_bar.png)
+![Locating the Extension](https://raw.githubusercontent.com/ViniSCode/gitdoro-ide-time-tracker/main/gitdoro_location.png)
 
 Looking for a reliable **code time tracker** or **GitHub time tracker**? You just found the best one. 
 

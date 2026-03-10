@@ -23,6 +23,7 @@ interface ProjectInfo {
   remoteUrl: string | null;
   owner: string | null;
   repo: string | null;
+  branch: string | null;
   localPath: string;
   gitdoroProjectId: string | null;
 }
@@ -53,12 +54,15 @@ export class ProjectManager {
     // Try to get Git info
     const gitInfo = this.getGitRemoteInfo();
 
+    const branchSuffix = gitInfo?.branch ? ` (${gitInfo.branch})` : '';
+
     const project: ProjectInfo = {
-      name: gitInfo?.repo || folderName,
+      name: (gitInfo?.repo || folderName) + branchSuffix,
       isGitRepo: !!gitInfo,
       remoteUrl: gitInfo?.remoteUrl || null,
       owner: gitInfo?.owner || null,
       repo: gitInfo?.repo || null,
+      branch: gitInfo?.branch || null,
       localPath,
       gitdoroProjectId: null
     };
@@ -104,7 +108,7 @@ export class ProjectManager {
   /**
    * Use the VS Code Git extension to get remote info.
    */
-  private getGitRemoteInfo(): { remoteUrl: string; owner: string; repo: string } | null {
+  private getGitRemoteInfo(): { remoteUrl: string; owner: string; repo: string; branch: string | null } | null {
     try {
       const gitExtension = vscode.extensions.getExtension<GitExtensionApi>('vscode.git');
       if (!gitExtension || !gitExtension.isActive) return null;
@@ -127,7 +131,8 @@ export class ProjectManager {
       return {
         remoteUrl,
         owner: parsed.owner,
-        repo: parsed.repo
+        repo: parsed.repo,
+        branch: repository.state.HEAD?.name || null
       };
     } catch {
       return null;
@@ -151,6 +156,7 @@ export class ProjectManager {
           remoteUrl: project.remoteUrl,
           owner: project.owner,
           repo: project.repo,
+          branch: project.branch,
           localPath: project.localPath
         }
       });
