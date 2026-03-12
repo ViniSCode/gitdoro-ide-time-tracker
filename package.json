@@ -1,0 +1,111 @@
+{
+  "name": "gitdoro-vscode",
+  "displayName": "Gitdoro: Focus Timer & Deep Work Tracker for Developers",
+  "description": "Track focus sessions, coding time & deep work with GitHub-style heatmaps. Free Pomodoro timer for developers. WakaTime alternative.",
+  "version": "0.1.4",
+  "publisher": "Gitdoro",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/viniscode/gitdoro-ide-time-tracker"
+  },
+  "bugs": {
+    "url": "https://github.com/viniscode/gitdoro-ide-time-tracker/issues"
+  },
+  "homepage": "https://gitdoro.com",
+  "keywords": [
+    "pomodoro timer",
+    "focus timer",
+    "time tracker",
+    "deep work",
+    "developer productivity",
+    "code time tracker",
+    "github time tracker",
+    "coding session",
+    "flow state",
+    "wakatime alternative"
+  ],
+  "license": "MIT",
+  "icon": "icon.png",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Visualization",
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "gitdoro.startTimer",
+        "title": "Gitdoro: Start Timer"
+      },
+      {
+        "command": "gitdoro.pauseTimer",
+        "title": "Gitdoro: Pause Timer"
+      },
+      {
+        "command": "gitdoro.login",
+        "title": "Gitdoro: Login"
+      },
+      {
+        "command": "gitdoro.openDashboard",
+        "title": "Gitdoro: Open Dashboard"
+      },
+      {
+        "command": "gitdoro.showMenu",
+        "title": "Gitdoro: Show Menu"
+      },
+      {
+        "command": "gitdoro.stopTimer",
+        "title": "Gitdoro: Stop Timer"
+      },
+      {
+        "command": "gitdoro.toggleAction",
+        "title": "Gitdoro: Toggle Timer Action"
+      }
+    ],
+    "configuration": {
+      "title": "Gitdoro",
+      "properties": {
+        "gitdoro.autoTrack": {
+          "type": "boolean",
+          "default": false,
+          "description": "Automatically track time when VS Code is focused."
+        },
+        "gitdoro.autoTrackDelay": {
+          "type": "number",
+          "default": 0,
+          "description": "Delay in minutes before auto-starting the timer when VS Code gains focus."
+        },
+        "gitdoro.pauseOnBlur": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically pause the timer when VS Code loses focus."
+        },
+        "gitdoro.pauseOnBlurDelay": {
+          "type": "number",
+          "default": 5,
+          "description": "Delay in minutes before pausing the timer when VS Code loses focus."
+        }
+      }
+    }
+  },
+  "extensionDependencies": [
+    "vscode.git"
+  ],
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.80.0",
+    "@types/node": "18.x",
+    "typescript": "^5.1.3"
+  }
+}
