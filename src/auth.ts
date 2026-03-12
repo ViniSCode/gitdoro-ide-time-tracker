@@ -18,7 +18,8 @@ export class AuthManager {
   async login(): Promise<void> {
     // Use vscode.env.uriScheme to detect the actual IDE (vscode, cursor, antigravity, etc.)
     const uriScheme = vscode.env.uriScheme;
-    const authUrl = `${API_BASE}/extension/auth?redirect=${encodeURIComponent(uriScheme)}`;
+    const extId = this.context.extension.id;
+    const authUrl = `${API_BASE}/extension/auth?redirect=${encodeURIComponent(uriScheme)}&extId=${encodeURIComponent(extId)}`;
     await vscode.env.openExternal(vscode.Uri.parse(authUrl));
     vscode.window.showInformationMessage('Gitdoro: Complete sign-in in your browser...');
   }
