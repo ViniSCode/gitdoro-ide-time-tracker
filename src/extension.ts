@@ -81,32 +81,62 @@ export function activate(context: vscode.ExtensionContext) {
 
       const isRunning = tracker.isRunning();
       const isPaused = tracker.isPaused();
-      const items: string[] = [];
+      const items: vscode.QuickPickItem[] = [];
 
       if (isRunning) {
-        items.push('⏸ Pause Timer', '⏹ Stop Timer');
+        items.push({ label: '⏸ Pause Timer' }, { label: '⏹ Stop Timer' });
       } else if (isPaused) {
-        items.push('▶ Resume Timer', '⏹ Stop Timer');
+        items.push({ label: '▶ Resume Timer' }, { label: '⏹ Stop Timer' });
       } else {
-        items.push('▶ Start Timer');
+        items.push({ label: '▶ Start Timer' });
       }
 
-      items.push('📊 View Reports', '🔓 Logout');
+      items.push({ label: '📊 View Reports' });
+
+      const config = vscode.workspace.getConfiguration('gitdoro');
+      const autoTrack = config.get<boolean>('autoTrack', false);
+      const pauseOnBlur = config.get<boolean>('pauseOnBlur', true);
+
+      items.push({
+        label: autoTrack ? '✅ Disable Auto Track' : '⬛ Enable Auto Track',
+        description: 'Toda vez que iniciar a IDE, o timer irá começar sozinho'
+      });
+
+      items.push({
+        label: pauseOnBlur ? '✅ Disable Focus Toggle' : '⬛ Enable Focus Toggle',
+        description: 'Pausa automaticamente quando a IDE perde o foco'
+      });
+
+      items.push({ label: '🔓 Logout' });
 
       const choice = await vscode.window.showQuickPick(items, {
         placeHolder: `Gitdoro — ${projectManager.getCurrentProjectName() || 'No project detected'}`
       });
 
       if (!choice) return;
-      if (choice.includes('Start') || choice.includes('Resume')) await tracker.start();
-      else if (choice.includes('Pause')) await tracker.pause();
-      else if (choice.includes('Stop')) await tracker.stop();
-      else if (choice.includes('Reports')) {
+      const label = choice.label;
+
+      if (label.includes('Start') || label.includes('Resume')) await tracker.start();
+      else if (label.includes('Pause Timer')) await tracker.pause();
+      else if (label.includes('Stop')) await tracker.stop();
+      else if (label.includes('Reports')) {
         vscode.env.openExternal(vscode.Uri.parse(
           `https://www.gitdoro.com/dashboard/reports?${UTM_BASE}&utm_campaign=reports`
         ));
       }
-      else if (choice.includes('Logout')) {
+      else if (label.includes('Auto Track')) {
+        await config.update('autoTrack', !autoTrack, vscode.ConfigurationTarget.Global);
+        vscode.window.showInformationMessage(`Gitdoro: Auto Track ${!autoTrack ? 'enabled' : 'disabled'}.`);
+        // If enabling and IDE is focused, start it immediately
+        if (!autoTrack && vscode.window.state.focused) {
+          tracker.onWindowFocused();
+        }
+      }
+      else if (label.includes('Focus Toggle')) {
+        await config.update('pauseOnBlur', !pauseOnBlur, vscode.ConfigurationTarget.Global);
+        vscode.window.showInformationMessage(`Gitdoro: Focus Toggle ${!pauseOnBlur ? 'enabled' : 'disabled'}.`);
+      }
+      else if (label.includes('Logout')) {
         await tracker.stop();
         await authManager.logout();
         statusBar.update('logged-out', null);
