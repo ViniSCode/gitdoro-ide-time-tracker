@@ -8,6 +8,8 @@ type TrackerState = 'idle' | 'running' | 'paused';
 
 const HEARTBEAT_INTERVAL_MS = 60_000; // 1 minute
 const BLUR_PAUSE_DELAY_MS = 5 * 60_000; // 5 minutes
+const MAX_VALID_GAP_MS = 10 * 60_000; // 10 minutes — max elapsed between checkpoints
+const MAX_SESSION_SECONDS = 12 * 60 * 60; // 12 hours — absolute session cap
 
 export class Tracker {
   private auth: AuthManager;
@@ -208,12 +210,24 @@ export class Tracker {
 
   /**
    * Add elapsed time since last checkpoint to accumulated total.
+   * Caps the delta to MAX_VALID_GAP_MS to prevent inflated values
+   * from system suspend/sleep/hibernate.
    */
   private accumulateTime(): void {
     if (this.sessionStartTime > 0) {
-      const elapsed = Math.floor((Date.now() - this.sessionStartTime) / 1000);
-      this.accumulatedSeconds += elapsed;
-      this.sessionStartTime = Date.now();
+      const now = Date.now();
+      const rawElapsed = now - this.sessionStartTime;
+
+      // If gap > 10 min, system likely suspended — cap the delta
+      const validElapsed = rawElapsed > MAX_VALID_GAP_MS
+        ? Math.floor(MAX_VALID_GAP_MS / 1000)
+        : Math.floor(rawElapsed / 1000);
+
+      this.accumulatedSeconds = Math.min(
+        this.accumulatedSeconds + validElapsed,
+        MAX_SESSION_SECONDS // Absolute cap at 12 hours
+      );
+      this.sessionStartTime = now;
     }
   }
 
