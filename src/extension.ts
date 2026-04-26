@@ -99,12 +99,12 @@ export function activate(context: vscode.ExtensionContext) {
 
       items.push({
         label: autoTrack ? '✅ Disable Auto Track' : '⬛ Enable Auto Track',
-        description: 'Toda vez que iniciar a IDE, o timer irá começar sozinho'
+        description: 'Automatically starts the timer when VS Code is focused'
       });
 
       items.push({
         label: pauseOnBlur ? '✅ Disable Focus Toggle' : '⬛ Enable Focus Toggle',
-        description: 'Pausa automaticamente quando a IDE perde o foco'
+        description: 'Automatically pauses the timer when VS Code loses focus'
       });
 
       items.push({ label: '🔓 Logout' });
