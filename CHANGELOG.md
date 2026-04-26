@@ -2,6 +2,16 @@
 
 All notable changes to the "gitdoro-vscode" extension will be documented in this file.
 
+## [0.1.5] - 2026-04-26
+
+### Fixed
+- Prevent inflated session durations caused by system suspend/sleep/hibernate
+- `accumulateTime()` now caps time gaps at 10 minutes per interval
+- Added absolute session cap of 12 hours to prevent extreme outliers
+
+### Changed
+- Timer now detects and handles system idle/sleep gracefully
+
 ## [0.0.3] - 2026-03-01
 
 ### Fixed

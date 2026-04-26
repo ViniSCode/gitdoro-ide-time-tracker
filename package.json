@@ -2,7 +2,7 @@
   "name": "gitdoro-time-tracker",
   "displayName": "Gitdoro: Focus Timer & Deep Work Tracker for Developers",
   "description": "Track focus sessions, coding time & deep work with GitHub-style heatmaps. Free Pomodoro timer for developers. WakaTime alternative.",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "publisher": "Gitdoro",
   "repository": {
     "type": "git",
