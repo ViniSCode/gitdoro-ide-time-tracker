@@ -2,7 +2,7 @@
   "name": "gitdoro-vscode",
   "displayName": "Gitdoro: Focus Timer & Deep Work Tracker for Developers",
   "description": "Track focus sessions, coding time & deep work with GitHub-style heatmaps. Free Pomodoro timer for developers. WakaTime alternative.",
-  "version": "0.1.7",
+  "version": "0.1.9",
   "publisher": "Gitdoro",
   "repository": {
     "type": "git",
@@ -34,7 +34,8 @@
     "Other"
   ],
   "activationEvents": [
-    "onStartupFinished"
+    "onStartupFinished",
+    "onUri"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -66,6 +67,10 @@
       {
         "command": "gitdoro.toggleAction",
         "title": "Gitdoro: Toggle Timer Action"
+      },
+      {
+        "command": "gitdoro.enterToken",
+        "title": "Gitdoro: Enter Token Manually"
       }
     ],
     "configuration": {
