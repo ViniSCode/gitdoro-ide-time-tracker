@@ -23,6 +23,7 @@ export class Tracker {
   private blurTimeout: NodeJS.Timeout | null = null;
   private autoTrackTimeout: NodeJS.Timeout | null = null;
   private sessionId: string | null = null;
+  private sessionStartedAt: string | null = null; // ISO string of actual session start
 
   constructor(auth: AuthManager, projectManager: ProjectManager, statusBar: StatusBarManager) {
     this.auth = auth;
@@ -51,11 +52,11 @@ export class Tracker {
       this.state = 'running';
       this.sessionStartTime = Date.now();
     } else {
-      // Fresh start
       this.state = 'running';
       this.sessionStartTime = Date.now();
       this.accumulatedSeconds = 0;
       this.sessionId = crypto.randomUUID();
+      this.sessionStartedAt = new Date().toISOString();
     }
 
     const projectName = this.projectManager.getCurrentProjectName();
@@ -111,6 +112,7 @@ export class Tracker {
 
     this.accumulatedSeconds = 0;
     this.sessionId = null;
+    this.sessionStartedAt = null;
 
     vscode.window.showInformationMessage('Gitdoro: Timer stopped. Session saved.');
   }
@@ -302,7 +304,8 @@ export class Tracker {
           isGitRemote: project?.isGitRepo || false,
           remoteUrl: project?.remoteUrl || null,
           owner: project?.owner || null,
-          repo: project?.repo || null
+          repo: project?.repo || null,
+          startedAt: this.sessionStartedAt || null,
         }
       });
 

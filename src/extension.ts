@@ -46,20 +46,33 @@ export function activate(context: vscode.ExtensionContext) {
       vscode.env.openExternal(vscode.Uri.parse(
         `https://www.gitdoro.com/dashboard?${UTM_BASE}&utm_campaign=dashboard`
       ));
-    })
+    }),
+
+    // Manual token entry — fallback when deep link doesn't work
+    vscode.commands.registerCommand('gitdoro.enterToken', async () => {
+      const success = await authManager.promptManualToken();
+      if (success) {
+        await initializeExtension();
+      }
+    }),
   );
 
   // Handle URI callbacks (deep link from browser auth)
   context.subscriptions.push(
     vscode.window.registerUriHandler({
-      handleUri(uri: vscode.Uri) {
+      async handleUri(uri: vscode.Uri) {
+        console.log('Gitdoro: URI handler received:', uri.toString());
+
         if (uri.path === '/auth') {
           const token = new URLSearchParams(uri.query).get('token');
           if (token) {
-            authManager.handleAuthCallback(token).then(() => {
-              // Re-init after login
-              initializeExtension();
-            });
+            const success = await authManager.handleAuthCallback(token);
+            if (success) {
+              await initializeExtension();
+            }
+          } else {
+            console.error('Gitdoro: URI handler received auth callback without token');
+            vscode.window.showErrorMessage('Gitdoro: Auth callback received but no token was included.');
           }
         }
       }
@@ -71,11 +84,20 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand('gitdoro.showMenu', async () => {
       const isLoggedIn = await authManager.isLoggedIn();
       if (!isLoggedIn) {
+        // Show login menu with both options
         const choice = await vscode.window.showQuickPick(
-          ['🔑 Login to Gitdoro'],
+          [
+            { label: '🔑 Login to Gitdoro', description: 'Opens browser to sign in' },
+            { label: '📋 Enter Token Manually', description: 'Paste a token from the website' },
+          ],
           { placeHolder: 'Gitdoro — Not signed in' }
         );
-        if (choice) await authManager.login();
+        if (choice?.label.includes('Login')) {
+          await authManager.login();
+        } else if (choice?.label.includes('Token')) {
+          const success = await authManager.promptManualToken();
+          if (success) await initializeExtension();
+        }
         return;
       }
 

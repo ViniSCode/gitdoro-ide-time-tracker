@@ -2,6 +2,15 @@
 
 All notable changes to the "gitdoro-vscode" extension will be documented in this file.
 
+## [0.1.8] - 2026-04-30
+
+### Fixed
+- Sessions are now correctly attributed to the day when work actually happened, not when the laptop was reopened
+- Extension now sends the real `startedAt` timestamp to the API instead of computing it server-side
+
+### Changed
+- Sync payload now includes `startedAt` for accurate session date attribution after system sleep
+
 ## [0.1.5] - 2026-04-26
 
 ### Fixed
