@@ -115,7 +115,7 @@ export class AuthManager {
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
+        const errorData = await response.json().catch(() => ({})) as any;
         vscode.window.showErrorMessage(
           `Gitdoro: ${errorData.error || 'Token is invalid or expired. Please try logging in again.'}`
         );
