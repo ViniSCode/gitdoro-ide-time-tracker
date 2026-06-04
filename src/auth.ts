@@ -23,7 +23,7 @@ export class AuthManager {
     // Deduplicate: don't open a second browser window if already waiting
     if (this.awaitingAuth) {
       const action = await vscode.window.showInformationMessage(
-        'Gitdoro: Already waiting for login. Didn\'t work?',
+        'Gitdoro is already waiting for login. Didn\'t work?',
         'Try Again',
         'Enter Token Manually'
       );
@@ -48,17 +48,33 @@ export class AuthManager {
     const uriScheme = vscode.env.uriScheme;
     const extId = this.context.extension.id;
     const authUrl = `${API_BASE}/extension/auth?redirect=${encodeURIComponent(uriScheme)}&extId=${encodeURIComponent(extId)}`;
+    
     await vscode.env.openExternal(vscode.Uri.parse(authUrl));
 
-    // Show a message with fallback option after opening browser
-    const action = await vscode.window.showInformationMessage(
-      'Gitdoro: Complete sign-in in your browser. If it doesn\'t redirect back automatically, use "Enter Token" below.',
-      'Enter Token Manually'
-    );
+    // Use withProgress to show a non-blocking "waiting" state
+    await vscode.window.withProgress({
+      location: vscode.ProgressLocation.Notification,
+      title: "Gitdoro: Waiting for authentication...",
+      cancellable: true
+    }, async (progress, token) => {
+      token.onCancellationRequested(() => {
+        this.awaitingAuth = false;
+        if (this.authTimeoutHandle) {
+          clearTimeout(this.authTimeoutHandle);
+          this.authTimeoutHandle = null;
+        }
+      });
 
-    if (action === 'Enter Token Manually') {
-      await this.promptManualToken();
-    }
+      // Poll or wait for this.awaitingAuth to become false
+      // This happens when handleAuthCallback is called via URI or manual entry
+      while (this.awaitingAuth && !token.isCancellationRequested) {
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+      
+      if (token.isCancellationRequested) {
+        return;
+      }
+    });
   }
 
   /**
@@ -71,9 +87,13 @@ export class AuthManager {
       placeHolder: 'Paste token here...',
       password: true,
       ignoreFocusOut: true,
+      validateInput: (text) => {
+        return text.trim().length > 0 ? null : 'Token cannot be empty';
+      }
     });
 
-    if (!token || token.trim().length === 0) {
+    if (!token) {
+      this.awaitingAuth = false; // Reset if they cancelled
       return false;
     }
 
@@ -87,6 +107,7 @@ export class AuthManager {
    * Returns true if login succeeded.
    */
   async handleAuthCallback(token: string): Promise<boolean> {
+    // Clear timeout and state
     this.awaitingAuth = false;
     if (this.authTimeoutHandle) {
       clearTimeout(this.authTimeoutHandle);
@@ -99,31 +120,42 @@ export class AuthManager {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json'
         },
       });
 
       if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
         vscode.window.showErrorMessage(
-          'Gitdoro: Token is invalid or expired. Please try logging in again.'
+          `Gitdoro: ${errorData.error || 'Token is invalid or expired. Please try logging in again.'}`
         );
         return false;
       }
+
+      const userData = await response.json();
+      console.log('Gitdoro: Token validated for user:', userData.email);
     } catch (err) {
       // Network error — still store the token (they might be offline temporarily)
       console.warn('Gitdoro: Could not validate token (network error), storing anyway:', err);
+      // Optional: show a warning but continue
+      // vscode.window.showWarningMessage('Gitdoro: Could not reach server to validate token. It will be stored and checked later.');
     }
 
     // Step 2: Store the token with fallback
     const stored = await this.storeToken(token);
     if (!stored) {
       vscode.window.showErrorMessage(
-        'Gitdoro: Failed to save token. Please try again or restart your editor.'
+        'Gitdoro: Failed to save token securely. Please try again or restart your editor.'
       );
       return false;
     }
 
     this.token = token;
     vscode.window.showInformationMessage('Gitdoro: Successfully signed in! ✓');
+    
+    // Trigger any post-login initialization
+    await vscode.commands.executeCommand('gitdoro.initialize');
+    
     return true;
   }
 

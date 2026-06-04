@@ -50,10 +50,12 @@ export function activate(context: vscode.ExtensionContext) {
 
     // Manual token entry — fallback when deep link doesn't work
     vscode.commands.registerCommand('gitdoro.enterToken', async () => {
-      const success = await authManager.promptManualToken();
-      if (success) {
-        await initializeExtension();
-      }
+      await authManager.promptManualToken();
+    }),
+
+    // Internal initialization command
+    vscode.commands.registerCommand('gitdoro.initialize', async () => {
+      await initializeExtension();
     }),
   );
 
@@ -64,12 +66,10 @@ export function activate(context: vscode.ExtensionContext) {
         console.log('Gitdoro: URI handler received:', uri.toString());
 
         if (uri.path === '/auth') {
-          const token = new URLSearchParams(uri.query).get('token');
+          const params = new URLSearchParams(uri.query);
+          const token = params.get('token');
           if (token) {
-            const success = await authManager.handleAuthCallback(token);
-            if (success) {
-              await initializeExtension();
-            }
+            await authManager.handleAuthCallback(token);
           } else {
             console.error('Gitdoro: URI handler received auth callback without token');
             vscode.window.showErrorMessage('Gitdoro: Auth callback received but no token was included.');
