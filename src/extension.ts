@@ -50,10 +50,12 @@ export function activate(context: vscode.ExtensionContext) {
 
     // Manual token entry — fallback when deep link doesn't work
     vscode.commands.registerCommand('gitdoro.enterToken', async () => {
-      const success = await authManager.promptManualToken();
-      if (success) {
-        await initializeExtension();
-      }
+      await authManager.promptManualToken();
+    }),
+
+    // Internal initialization command
+    vscode.commands.registerCommand('gitdoro.initialize', async () => {
+      await initializeExtension();
     }),
   );
 
@@ -64,12 +66,10 @@ export function activate(context: vscode.ExtensionContext) {
         console.log('Gitdoro: URI handler received:', uri.toString());
 
         if (uri.path === '/auth') {
-          const token = new URLSearchParams(uri.query).get('token');
+          const params = new URLSearchParams(uri.query);
+          const token = params.get('token');
           if (token) {
-            const success = await authManager.handleAuthCallback(token);
-            if (success) {
-              await initializeExtension();
-            }
+            await authManager.handleAuthCallback(token);
           } else {
             console.error('Gitdoro: URI handler received auth callback without token');
             vscode.window.showErrorMessage('Gitdoro: Auth callback received but no token was included.');
@@ -84,7 +84,6 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand('gitdoro.showMenu', async () => {
       const isLoggedIn = await authManager.isLoggedIn();
       if (!isLoggedIn) {
-        // Show login menu with both options
         const choice = await vscode.window.showQuickPick(
           [
             { label: '🔑 Login to Gitdoro', description: 'Opens browser to sign in' },
@@ -95,8 +94,7 @@ export function activate(context: vscode.ExtensionContext) {
         if (choice?.label.includes('Login')) {
           await authManager.login();
         } else if (choice?.label.includes('Token')) {
-          const success = await authManager.promptManualToken();
-          if (success) await initializeExtension();
+          await authManager.promptManualToken();
         }
         return;
       }
@@ -149,7 +147,6 @@ export function activate(context: vscode.ExtensionContext) {
       else if (label.includes('Auto Track')) {
         await config.update('autoTrack', !autoTrack, vscode.ConfigurationTarget.Global);
         vscode.window.showInformationMessage(`Gitdoro: Auto Track ${!autoTrack ? 'enabled' : 'disabled'}.`);
-        // If enabling and IDE is focused, start it immediately
         if (!autoTrack && vscode.window.state.focused) {
           tracker.onWindowFocused();
         }
@@ -166,16 +163,13 @@ export function activate(context: vscode.ExtensionContext) {
     })
   );
 
-  // Add status bar to subscriptions
   context.subscriptions.push(statusBar.getStatusBarItem());
   context.subscriptions.push(statusBar.getActionItem());
 
-  // Auto-detect project on workspace change
   context.subscriptions.push(
     vscode.workspace.onDidChangeWorkspaceFolders(() => projectManager.detectProject())
   );
 
-  // Auto-track: listen for window focus changes
   context.subscriptions.push(
     vscode.window.onDidChangeWindowState((e) => {
       if (!tracker.isAutoTrackEnabled()) return;
@@ -187,7 +181,6 @@ export function activate(context: vscode.ExtensionContext) {
     })
   );
 
-  // Initialize: detect project and update status bar
   initializeExtension();
 }
 
@@ -196,8 +189,6 @@ async function initializeExtension() {
   if (isLoggedIn) {
     await projectManager.detectProject();
     statusBar.update('idle', projectManager.getCurrentProjectName());
-
-    // Handle auto-start on activation if window is already focused
     if (tracker.isAutoTrackEnabled() && vscode.window.state.focused) {
       tracker.onWindowFocused();
     }
@@ -223,13 +214,10 @@ async function showWelcomeNotification(context: vscode.ExtensionContext, key: st
     ));
   }
 
-  // Mark as shown regardless of action (don't annoy users)
   await context.globalState.update(key, true);
 }
 
 export async function deactivate() {
-  // Auto-stop timer when VS Code closes — must return promise
-  // so VS Code waits for the final sync HTTP request to complete
   if (tracker && (tracker.isRunning() || tracker.isPaused())) {
     await tracker.stop();
   }

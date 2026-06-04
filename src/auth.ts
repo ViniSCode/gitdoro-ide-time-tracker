@@ -23,7 +23,7 @@ export class AuthManager {
     // Deduplicate: don't open a second browser window if already waiting
     if (this.awaitingAuth) {
       const action = await vscode.window.showInformationMessage(
-        'Gitdoro: Already waiting for login. Didn\'t work?',
+        'Gitdoro is already waiting for login. Didn\'t work?',
         'Try Again',
         'Enter Token Manually'
       );
@@ -48,22 +48,32 @@ export class AuthManager {
     const uriScheme = vscode.env.uriScheme;
     const extId = this.context.extension.id;
     const authUrl = `${API_BASE}/extension/auth?redirect=${encodeURIComponent(uriScheme)}&extId=${encodeURIComponent(extId)}`;
+    
     await vscode.env.openExternal(vscode.Uri.parse(authUrl));
 
-    // Show a message with fallback option after opening browser
-    const action = await vscode.window.showInformationMessage(
-      'Gitdoro: Complete sign-in in your browser. If it doesn\'t redirect back automatically, use "Enter Token" below.',
-      'Enter Token Manually'
-    );
+    // Use withProgress to show a non-blocking "waiting" state
+    await vscode.window.withProgress({
+      location: vscode.ProgressLocation.Notification,
+      title: "Gitdoro: Waiting for authentication...",
+      cancellable: true
+    }, async (progress, token) => {
+      token.onCancellationRequested(() => {
+        this.awaitingAuth = false;
+        if (this.authTimeoutHandle) {
+          clearTimeout(this.authTimeoutHandle);
+          this.authTimeoutHandle = null;
+        }
+      });
 
-    if (action === 'Enter Token Manually') {
-      await this.promptManualToken();
-    }
+      // Poll or wait for this.awaitingAuth to become false
+      while (this.awaitingAuth && !token.isCancellationRequested) {
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+    });
   }
 
   /**
    * Prompt the user to paste a token manually.
-   * This is the fallback when deep links don't work.
    */
   async promptManualToken(): Promise<boolean> {
     const token = await vscode.window.showInputBox({
@@ -71,9 +81,13 @@ export class AuthManager {
       placeHolder: 'Paste token here...',
       password: true,
       ignoreFocusOut: true,
+      validateInput: (text) => {
+        return text.trim().length > 0 ? null : 'Token cannot be empty';
+      }
     });
 
-    if (!token || token.trim().length === 0) {
+    if (!token) {
+      this.awaitingAuth = false;
       return false;
     }
 
@@ -81,10 +95,7 @@ export class AuthManager {
   }
 
   /**
-   * Called when the browser redirects back with a token via URI handler,
-   * OR when the user manually enters a token.
    * Validates the token before storing it.
-   * Returns true if login succeeded.
    */
   async handleAuthCallback(token: string): Promise<boolean> {
     this.awaitingAuth = false;
@@ -99,17 +110,18 @@ export class AuthManager {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json'
         },
       });
 
       if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
         vscode.window.showErrorMessage(
-          'Gitdoro: Token is invalid or expired. Please try logging in again.'
+          `Gitdoro: ${errorData.error || 'Token is invalid or expired. Please try logging in again.'}`
         );
         return false;
       }
     } catch (err) {
-      // Network error — still store the token (they might be offline temporarily)
       console.warn('Gitdoro: Could not validate token (network error), storing anyway:', err);
     }
 
@@ -124,21 +136,21 @@ export class AuthManager {
 
     this.token = token;
     vscode.window.showInformationMessage('Gitdoro: Successfully signed in! ✓');
+    
+    // Trigger initialization
+    await vscode.commands.executeCommand('gitdoro.initialize');
+    
     return true;
   }
 
   /**
    * Store token in secrets with globalState fallback.
-   * Verifies the write succeeded by reading it back.
    */
   private async storeToken(token: string): Promise<boolean> {
-    // Try secrets first (OS keychain)
     try {
       await this.context.secrets.store(TOKEN_KEY, token);
-      // Verify it was actually stored
       const readback = await this.context.secrets.get(TOKEN_KEY);
       if (readback === token) {
-        // Clean up fallback if secrets works
         await this.context.globalState.update(TOKEN_FALLBACK_KEY, undefined);
         return true;
       }
@@ -146,7 +158,6 @@ export class AuthManager {
       console.warn('Gitdoro: Secrets storage failed, using fallback:', err);
     }
 
-    // Fallback to globalState (not as secure, but reliable)
     try {
       await this.context.globalState.update(TOKEN_FALLBACK_KEY, token);
       return true;
@@ -160,7 +171,6 @@ export class AuthManager {
    * Retrieve the token from secrets or globalState fallback.
    */
   private async retrieveToken(): Promise<string | null> {
-    // Try secrets first
     try {
       const secretToken = await this.context.secrets.get(TOKEN_KEY);
       if (secretToken) return secretToken;
@@ -168,7 +178,6 @@ export class AuthManager {
       console.warn('Gitdoro: Secrets read failed:', err);
     }
 
-    // Try globalState fallback
     const fallbackToken = this.context.globalState.get<string>(TOKEN_FALLBACK_KEY);
     if (fallbackToken) return fallbackToken;
 
@@ -176,7 +185,7 @@ export class AuthManager {
   }
 
   /**
-   * Check if user is logged in (has a stored token).
+   * Check if user is logged in.
    */
   async isLoggedIn(): Promise<boolean> {
     if (this.token) return true;
@@ -189,7 +198,7 @@ export class AuthManager {
   }
 
   /**
-   * Get the current auth token. Returns null if not logged in.
+   * Get the current auth token.
    */
   async getToken(): Promise<string | null> {
     if (this.token) return this.token;
@@ -198,13 +207,6 @@ export class AuthManager {
       this.token = stored;
     }
     return this.token;
-  }
-
-  /**
-   * Returns true if the extension is currently waiting for a browser login.
-   */
-  isAwaitingAuth(): boolean {
-    return this.awaitingAuth;
   }
 
   /**
